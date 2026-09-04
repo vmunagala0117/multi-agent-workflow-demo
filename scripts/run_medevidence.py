@@ -11,8 +11,11 @@ def main() -> None:
             "What evidence supports the safety and effectiveness "
             "of the proposed treatment?"
         ),
+        "risk_level": "low",
         "literature_results": [],
         "internal_evidence": [],
+        "evidence_status": None,
+        "response_mode": None,
         "synthesis": None,
         "citations": [],
         "validation_status": None,

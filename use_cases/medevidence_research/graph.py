@@ -1,6 +1,13 @@
 from langgraph.graph import END, START, StateGraph
 
-from .nodes import internal_evidence, literature_research, synthesize
+from .nodes import (
+    abstain,
+    assess_evidence,
+    internal_evidence,
+    literature_research,
+    route_after_assessment,
+    synthesize,
+)
 from .state import MedicalResearchState
 
 
@@ -9,18 +16,28 @@ def build_graph():
 
     builder.add_node("literature_research", literature_research)
     builder.add_node("internal_evidence", internal_evidence)
+    builder.add_node("assess_evidence", assess_evidence)
     builder.add_node("synthesize", synthesize)
+    builder.add_node("abstain", abstain)
 
-    # Fan-out: both evidence branches receive the initial state.
     builder.add_edge(START, "literature_research")
     builder.add_edge(START, "internal_evidence")
 
-    # Fan-in barrier: synthesis waits for both branches.
     builder.add_edge(
         ["literature_research", "internal_evidence"],
-        "synthesize",
+        "assess_evidence",
+    )
+
+    builder.add_conditional_edges(
+        "assess_evidence",
+        route_after_assessment,
+        {
+            "synthesize": "synthesize",
+            "abstain": "abstain",
+        },
     )
 
     builder.add_edge("synthesize", END)
+    builder.add_edge("abstain", END)
 
     return builder.compile()
