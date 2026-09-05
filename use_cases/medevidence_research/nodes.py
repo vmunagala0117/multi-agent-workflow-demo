@@ -1,38 +1,97 @@
 from .state import MedicalResearchState
 from typing import Literal
 
+from .tools.retrieval import (
+    search_internal_evidence,
+    search_literature,
+)
+
 def literature_research(
     state: MedicalResearchState,
 ) -> dict:
-    """Simulate retrieving evidence from external literature."""
-    return {
-        "literature_results": [
-            {
-                "source_id": "literature-001",
-                "source_type": "literature",
-                "title": "Synthetic external research article",
-                "content": f"External evidence related to: {state['user_query']}",
-                "citation_label": "[LIT-001]",
-            }
-        ]
-    }
+    """Retrieve ranked evidence from the literature tool."""
+
+    try:
+        results = search_literature(
+            query=state["user_query"],
+            top_k=2,
+        )
+    except OSError as exc:
+        return {
+            "literature_results": [],
+            "errors": [
+                {
+                    "node": "literature_research",
+                    "code": "SOURCE_UNAVAILABLE",
+                    "message": (
+                        "The literature corpus could not be accessed. "
+                        f"Error type: {type(exc).__name__}."
+                    ),
+                    "retryable": True,
+                }
+            ],
+        }
+    except ValueError as exc:
+        return {
+            "literature_results": [],
+            "errors": [
+                {
+                    "node": "literature_research",
+                    "code": "INVALID_RETRIEVAL_INPUT",
+                    "message": (
+                        "The literature request was invalid. "
+                        f"Error type: {type(exc).__name__}."
+                    ),
+                    "retryable": False,
+                }
+            ],
+        }
+
+    return {"literature_results": results}
 
 
 def internal_evidence(
     state: MedicalResearchState,
 ) -> dict:
-    """Simulate retrieving evidence from an internal knowledge base."""
-    return {
-        "internal_evidence": [
-            {
-                "source_id": "internal-001",
-                "source_type": "internal",
-                "title": "Synthetic internal evidence document",
-                "content": f"Internal evidence related to: {state['user_query']}",
-                "citation_label": "[INT-001]",
-            }
-        ]
-    }
+    """Retrieve ranked evidence from the internal-evidence tool."""
+
+    try:
+        results = search_internal_evidence(
+            query=state["user_query"],
+            top_k=2,
+        )
+    except OSError as exc:
+        return {
+            "internal_evidence": [],
+            "errors": [
+                {
+                    "node": "internal_evidence",
+                    "code": "SOURCE_UNAVAILABLE",
+                    "message": (
+                        "The internal corpus could not be accessed. "
+                        f"Error type: {type(exc).__name__}."
+                    ),
+                    "retryable": True,
+                }
+            ],
+        }
+    except ValueError as exc:
+        return {
+            "internal_evidence": [],
+            "errors": [
+                {
+                    "node": "internal_evidence",
+                    "code": "INVALID_RETRIEVAL_INPUT",
+                    "message": (
+                        "The internal-evidence request was invalid. "
+                        f"Error type: {type(exc).__name__}."
+                    ),
+                    "retryable": False,
+                }
+            ],
+        }
+
+    return {"internal_evidence": results}
 
 
 def synthesize(state: MedicalResearchState) -> dict:
