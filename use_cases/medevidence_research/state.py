@@ -24,9 +24,13 @@ class MedicalResearchState(TypedDict):
     synthesis: str | None
     synthesis_result: EvidenceSynthesis | None
     citations: list[dict]
+    validation_status: str | None
+
+    approval_status: Literal["approved", "rejected"] | None
+    reviewer_id: str | None
+    review_comment: str | None
 
     final_answer: str | None
     release_status: str | None
-
-    validation_status: str | None
+        
     errors: Annotated[list[WorkflowError], operator.add]

@@ -5,11 +5,14 @@ from .state import MedicalResearchState
 
 def route_after_citation_validation(
     state: MedicalResearchState,
-) -> Literal["release", "block"]:
-    if state.get("validation_status") == "valid":
-        return "release"
+) -> Literal["release", "review", "block"]:
+    if state.get("validation_status") != "valid":
+        return "block"
 
-    return "block"
+    if state.get("risk_level") == "high":
+        return "review"
+
+    return "release"
 
 
 def release_response(state: MedicalResearchState) -> dict:
@@ -45,5 +48,15 @@ def block_response(state: MedicalResearchState) -> dict:
             "could not be validated against the retrieved evidence."
         ),
         "release_status": "blocked",
+        "response_mode": "abstain",
+    }
+
+def reject_response(state: MedicalResearchState) -> dict:
+    return {
+        "final_answer": (
+            "The evidence summary was not released because it was "
+            "not approved during the required human review."
+        ),
+        "release_status": "rejected",
         "response_mode": "abstain",
     }

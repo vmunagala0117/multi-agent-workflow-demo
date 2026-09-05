@@ -15,11 +15,12 @@ from .release import (
     release_response,
     route_after_citation_validation,
 )
+from .human_review import human_review, route_after_review
+from .release import reject_response
 
 
 def build_graph(synthesis_node=synthesize,
-                checkpointer=None,
-                interrupt_before=None,):
+                checkpointer=None):
     builder = StateGraph(MedicalResearchState)
 
     builder.add_node("literature_research", literature_research)
@@ -28,6 +29,8 @@ def build_graph(synthesis_node=synthesize,
     builder.add_node("synthesize", synthesis_node)
     builder.add_node("abstain", abstain)
     builder.add_node("validate_citations", validate_citations)
+    builder.add_node("human_review", human_review)
+    builder.add_node("reject_response", reject_response)
     builder.add_node("release_response", release_response)
     builder.add_node("block_response", block_response)
 
@@ -54,11 +57,23 @@ def build_graph(synthesis_node=synthesize,
         route_after_citation_validation,
         {
             "release": "release_response",
+            "review": "human_review",
             "block": "block_response",
         },
     )
+
+    builder.add_conditional_edges(
+        "human_review",
+        route_after_review,
+        {
+            "release": "release_response",
+            "reject": "reject_response",
+        },
+    )
+
+
     builder.add_edge("release_response", END)
     builder.add_edge("block_response", END)
+    builder.add_edge("reject_response", END)
 
-    return builder.compile(checkpointer=checkpointer, 
-                           interrupt_before=interrupt_before,)
+    return builder.compile(checkpointer=checkpointer)
