@@ -11,13 +11,13 @@ from .nodes import (
 from .state import MedicalResearchState
 
 
-def build_graph():
+def build_graph(synthesis_node=synthesize):
     builder = StateGraph(MedicalResearchState)
 
     builder.add_node("literature_research", literature_research)
     builder.add_node("internal_evidence", internal_evidence)
     builder.add_node("assess_evidence", assess_evidence)
-    builder.add_node("synthesize", synthesize)
+    builder.add_node("synthesize", synthesis_node)
     builder.add_node("abstain", abstain)
 
     builder.add_edge(START, "literature_research")

@@ -1,10 +1,11 @@
 from pprint import pprint
 
 from use_cases.medevidence_research.graph import build_graph
+from use_cases.medevidence_research.llm_synthesis import synthesize_with_llm
 
 
 def main() -> None:
-    graph = build_graph()
+    graph = build_graph(synthesis_node=synthesize_with_llm)
 
     initial_state = {
         "user_query": (
