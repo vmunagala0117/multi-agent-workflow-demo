@@ -9,8 +9,10 @@ def literature_research(
         "literature_results": [
             {
                 "source_id": "literature-001",
+                "source_type": "literature",
                 "title": "Synthetic external research article",
-                "summary": f"External evidence related to: {state['user_query']}",
+                "content": f"External evidence related to: {state['user_query']}",
+                "citation_label": "[LIT-001]",
             }
         ]
     }
@@ -24,8 +26,10 @@ def internal_evidence(
         "internal_evidence": [
             {
                 "source_id": "internal-001",
+                "source_type": "internal",
                 "title": "Synthetic internal evidence document",
-                "summary": f"Internal evidence related to: {state['user_query']}",
+                "content": f"Internal evidence related to: {state['user_query']}",
+                "citation_label": "[INT-001]",
             }
         ]
     }

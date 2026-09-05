@@ -8,8 +8,8 @@ def main() -> None:
 
     initial_state = {
         "user_query": (
-            "What evidence supports the safety and effectiveness "
-            "of the proposed treatment?"
+            "What evidence supports Therapy Alpha for reducing chronic "
+            "pruritus in adults, and what safety limitations remain?"
         ),
         "risk_level": "low",
         "literature_results": [],

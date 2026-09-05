@@ -1,0 +1,53 @@
+[
+    {
+        "source_id": "INT-001",
+        "source_type": "internal",
+        "title": "Medical Evidence Summary for Therapy Alpha",
+        "content": "This synthetic internal evidence summary concludes that available studies support a clinically meaningful reduction in chronic pruritus among adults treated with Therapy Alpha. The strongest evidence comes from the 24-week randomized trial. The summary identifies limited evidence beyond 52 weeks and insufficient data for rare adverse events as important evidence gaps.",
+        "citation_label": "[INT-001]",
+        "published_date": "2026-01-20",
+        "source_uri": "internal://medical-affairs/therapy-alpha/evidence-summary",
+        "document_version": "2.1",
+        "access_level": "internal",
+        "metadata": {
+            "document_type": "medical_evidence_summary",
+            "owner": "medical_affairs",
+            "status": "approved",
+            "synthetic": "true"
+        }
+    },
+    {
+        "source_id": "INT-002",
+        "source_type": "internal",
+        "title": "Internal Safety Review for Therapy Alpha",
+        "content": "This synthetic internal safety review identifies headache, nasopharyngitis, and injection-site reactions as the most commonly observed adverse events for Therapy Alpha. Available studies did not show an imbalance in serious adverse events. However, exposure remains too limited to exclude rare risks, risks in special populations, or risks associated with treatment beyond one year.",
+        "citation_label": "[INT-002]",
+        "published_date": "2026-02-12",
+        "source_uri": "internal://safety/therapy-alpha/safety-review",
+        "document_version": "1.4",
+        "access_level": "internal",
+        "metadata": {
+            "document_type": "safety_review",
+            "owner": "drug_safety",
+            "status": "approved",
+            "synthetic": "true"
+        }
+    },
+    {
+        "source_id": "INT-003",
+        "source_type": "internal",
+        "title": "Early Development Risk Assessment for Therapy Alpha",
+        "content": "This synthetic restricted draft describes preliminary development risks for Therapy Alpha. Several observations were based on early, incomplete data and were superseded by later approved evidence summaries. The document must not be treated as current approved medical evidence.",
+        "citation_label": "[INT-003]",
+        "published_date": "2023-06-05",
+        "source_uri": "internal://development/therapy-alpha/early-risk-draft",
+        "document_version": "0.7",
+        "access_level": "restricted",
+        "metadata": {
+            "document_type": "development_risk_assessment",
+            "owner": "clinical_development",
+            "status": "superseded",
+            "synthetic": "true"
+        }
+    }
+]
