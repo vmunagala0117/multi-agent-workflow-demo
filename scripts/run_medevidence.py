@@ -1,22 +1,23 @@
+import os
+from pathlib import Path
 from pprint import pprint
+from uuid import uuid4
+
+from dotenv import load_dotenv
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(PROJECT_ROOT / ".env")
+
+from langgraph.checkpoint.memory import InMemorySaver
 
 from use_cases.medevidence_research.graph import build_graph
-from use_cases.medevidence_research.llm_synthesis import synthesize_with_llm
-from langgraph.checkpoint.memory import InMemorySaver
+from use_cases.medevidence_research.llm_synthesis import (
+    synthesize_with_llm,
+)
 
 
 def main() -> None:
-    checkpointer = InMemorySaver()
-    graph = build_graph(synthesis_node=synthesize_with_llm, 
-                        checkpointer=checkpointer,
-                        interrupt_before=["synthesize"],)
-
-    config = {
-        "configurable": {
-            "thread_id": "medevidence-resume-demo-001",
-        }
-    }
-
     initial_state = {
         "user_query": (
             "What evidence supports Therapy Alpha for reducing chronic "
@@ -31,41 +32,64 @@ def main() -> None:
         "synthesis_result": None,
         "citations": [],
         "validation_status": None,
+        "final_answer": None,
+        "release_status": None,
+        "approval_status": None,
+        "reviewer_id": None,
+        "review_comment": None,
         "errors": [],
     }
 
-    '''
-    final_state = graph.invoke(initial_state, config=config,)
+    # Use a new thread for each independent execution.
+    thread_id = f"medevidence-observability-{uuid4()}"
+
+    config = {
+        "configurable": {
+            "thread_id": thread_id,
+        },
+        "run_name": "medevidence_research_workflow",
+        "tags": [
+            "medevidence",
+            "local-demo",
+            "phase-5",
+        ],
+        "metadata": {
+            "use_case": "medevidence_research",
+            "environment": "local",
+            "workflow_version": "phase-5-v1",
+            "risk_level": initial_state["risk_level"],
+        },
+    }
+
+    # Native LangSmith tracing is automatically enabled through
+    # the LANGSMITH_* environment variables.
+    print(
+        "LangSmith tracing:",
+        os.getenv("LANGSMITH_TRACING", "false"),
+    )
+    print(
+        "LangSmith project:",
+        os.getenv("LANGSMITH_PROJECT", "default"),
+    )
+
+    checkpointer = InMemorySaver()
+
+    graph = build_graph(
+        synthesis_node=synthesize_with_llm,
+        checkpointer=checkpointer,
+    )
+
+    final_state = graph.invoke(
+        initial_state,
+        config=config,
+    )
+
     pprint(final_state)
 
     snapshot = graph.get_state(config)
-    print("Thread:", config["configurable"]["thread_id"])
+
+    print("Thread:", thread_id)
     print("Next nodes:", snapshot.next)
-    print("Release status:", snapshot.values["release_status"])
-    print("Final answer:", snapshot.values["final_answer"])
-    '''
-
-    paused_state = graph.invoke(initial_state, config=config)
-    paused_snapshot = graph.get_state(config)
-
-    print("--- PAUSED ---")
-    print("Next nodes:", paused_snapshot.next)
-    print(
-        "Literature:",
-        len(paused_snapshot.values["literature_results"]),
-    )
-    print(
-        "Internal:",
-        len(paused_snapshot.values["internal_evidence"]),
-    )
-    print("Synthesis:", paused_snapshot.values.get("synthesis"))
-
-    # Resume the workflow from the paused state
-    final_state = graph.invoke(None, config=config) #None means - continue the pending execution
-    final_snapshot = graph.get_state(config)
-
-    print("--- RESUMED ---")
-    print("Next nodes:", final_snapshot.next)
     print("Release status:", final_state["release_status"])
     print("Final answer:", final_state["final_answer"])
 
