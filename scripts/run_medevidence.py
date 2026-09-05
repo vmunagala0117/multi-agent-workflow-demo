@@ -2,10 +2,18 @@ from pprint import pprint
 
 from use_cases.medevidence_research.graph import build_graph
 from use_cases.medevidence_research.llm_synthesis import synthesize_with_llm
+from langgraph.checkpoint.memory import InMemorySaver
 
 
 def main() -> None:
-    graph = build_graph(synthesis_node=synthesize_with_llm)
+    checkpointer = InMemorySaver()
+    graph = build_graph(synthesis_node=synthesize_with_llm, checkpointer=checkpointer)
+
+    config = {
+        "configurable": {
+            "thread_id": "medevidence-demo-001",
+        }
+    }
 
     initial_state = {
         "user_query": (
@@ -24,8 +32,14 @@ def main() -> None:
         "errors": [],
     }
 
-    final_state = graph.invoke(initial_state)
+    final_state = graph.invoke(initial_state, config=config,)
     pprint(final_state)
+
+    snapshot = graph.get_state(config)
+    print("Thread:", config["configurable"]["thread_id"])
+    print("Next nodes:", snapshot.next)
+    print("Release status:", snapshot.values["release_status"])
+    print("Final answer:", snapshot.values["final_answer"])
 
 
 if __name__ == "__main__":

@@ -17,7 +17,8 @@ from .release import (
 )
 
 
-def build_graph(synthesis_node=synthesize):
+def build_graph(synthesis_node=synthesize,
+                checkpointer=None,):
     builder = StateGraph(MedicalResearchState)
 
     builder.add_node("literature_research", literature_research)
@@ -58,4 +59,4 @@ def build_graph(synthesis_node=synthesize):
     builder.add_edge("release_response", END)
     builder.add_edge("block_response", END)
 
-    return builder.compile()
+    return builder.compile(checkpointer=checkpointer)
