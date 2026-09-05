@@ -1,6 +1,7 @@
 import operator
 from typing import Annotated, Literal, TypedDict
 from .models import EvidenceRecord
+from .schemas import EvidenceSynthesis
 
 
 class WorkflowError(TypedDict):
@@ -21,6 +22,7 @@ class MedicalResearchState(TypedDict):
     response_mode: Literal["full", "partial", "abstain"] | None
 
     synthesis: str | None
+    synthesis_result: EvidenceSynthesis | None
     citations: list[dict]
 
     validation_status: str | None

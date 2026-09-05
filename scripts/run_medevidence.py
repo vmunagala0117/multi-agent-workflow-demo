@@ -17,6 +17,7 @@ def main() -> None:
         "evidence_status": None,
         "response_mode": None,
         "synthesis": None,
+        "synthesis_result": None,
         "citations": [],
         "validation_status": None,
         "errors": [],

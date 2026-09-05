@@ -49,7 +49,6 @@ def literature_research(
 
     return {"literature_results": results}
 
-
 def internal_evidence(
     state: MedicalResearchState,
 ) -> dict:
@@ -92,7 +91,6 @@ def internal_evidence(
         }
 
     return {"internal_evidence": results}
-
 
 def synthesize(state: MedicalResearchState) -> dict:
     literature_count = len(state["literature_results"])
@@ -147,7 +145,6 @@ def assess_evidence(state: MedicalResearchState) -> dict:
         "response_mode": "abstain",
     }
 
-
 def route_after_assessment(
     state: MedicalResearchState,
 ) -> Literal["synthesize", "abstain"]:
@@ -157,7 +154,6 @@ def route_after_assessment(
         return "synthesize"
 
     return "abstain"
-
 
 def abstain(state: MedicalResearchState) -> dict:
     """Return a safe response when required evidence is unavailable."""
