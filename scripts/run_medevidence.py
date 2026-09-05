@@ -7,11 +7,13 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 def main() -> None:
     checkpointer = InMemorySaver()
-    graph = build_graph(synthesis_node=synthesize_with_llm, checkpointer=checkpointer)
+    graph = build_graph(synthesis_node=synthesize_with_llm, 
+                        checkpointer=checkpointer,
+                        interrupt_before=["synthesize"],)
 
     config = {
         "configurable": {
-            "thread_id": "medevidence-demo-001",
+            "thread_id": "medevidence-resume-demo-001",
         }
     }
 
@@ -32,6 +34,7 @@ def main() -> None:
         "errors": [],
     }
 
+    '''
     final_state = graph.invoke(initial_state, config=config,)
     pprint(final_state)
 
@@ -40,6 +43,31 @@ def main() -> None:
     print("Next nodes:", snapshot.next)
     print("Release status:", snapshot.values["release_status"])
     print("Final answer:", snapshot.values["final_answer"])
+    '''
+
+    paused_state = graph.invoke(initial_state, config=config)
+    paused_snapshot = graph.get_state(config)
+
+    print("--- PAUSED ---")
+    print("Next nodes:", paused_snapshot.next)
+    print(
+        "Literature:",
+        len(paused_snapshot.values["literature_results"]),
+    )
+    print(
+        "Internal:",
+        len(paused_snapshot.values["internal_evidence"]),
+    )
+    print("Synthesis:", paused_snapshot.values.get("synthesis"))
+
+    # Resume the workflow from the paused state
+    final_state = graph.invoke(None, config=config) #None means - continue the pending execution
+    final_snapshot = graph.get_state(config)
+
+    print("--- RESUMED ---")
+    print("Next nodes:", final_snapshot.next)
+    print("Release status:", final_state["release_status"])
+    print("Final answer:", final_state["final_answer"])
 
 
 if __name__ == "__main__":
