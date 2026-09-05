@@ -1,5 +1,6 @@
 from .state import MedicalResearchState
 from typing import Literal
+from .schemas import CitedFinding, EvidenceSynthesis
 
 from .tools.retrieval import (
     search_internal_evidence,
@@ -96,19 +97,35 @@ def synthesize(state: MedicalResearchState) -> dict:
     literature_count = len(state["literature_results"])
     internal_count = len(state["internal_evidence"])
 
-    prefix = (
-        "PARTIAL EVIDENCE: "
-        if state["response_mode"] == "partial"
-        else ""
+    summary = (
+        f"Found {literature_count} external literature result(s) and "
+        f"{internal_count} internal evidence result(s) for "
+        f"'{state['user_query']}'."
+    )
+
+    result = EvidenceSynthesis(
+        executive_summary=summary,
+        efficacy_findings=[
+            CitedFinding(
+                finding=record["content"],
+                citation_labels=[record["citation_label"]],
+            )
+            for record in state["literature_results"]
+        ],
+        safety_findings=[
+            CitedFinding(
+                finding=record["content"],
+                citation_labels=[record["citation_label"]],
+            )
+            for record in state["internal_evidence"]
+        ],
+        evidence_gaps=[],
+        limitations=["Deterministic synthesis used for orchestration tests."],
     )
 
     return {
-        "synthesis": (
-            f"{prefix}"
-            f"Found {literature_count} external literature result(s) and "
-            f"{internal_count} internal evidence result(s) for "
-            f"'{state['user_query']}'."
-        ),
+        "synthesis_result": result,
+        "synthesis": summary,
         "citations": [
             *state["literature_results"],
             *state["internal_evidence"],
@@ -155,19 +172,37 @@ def route_after_assessment(
 
     return "abstain"
 
-def abstain(state: MedicalResearchState) -> dict:
-    """Return a safe response when required evidence is unavailable."""
+def build_abstention_message(
+    state: MedicalResearchState,
+) -> str:
+    evidence_status = state.get("evidence_status")
+    risk_level = state.get("risk_level", "unknown")
 
-    available_citations = [
-        *state["literature_results"],
-        *state["internal_evidence"],
-    ]
+    if evidence_status == "none":
+        return (
+            "I could not retrieve sufficient literature or internal evidence "
+            "to produce a supported response."
+        )
+
+    if evidence_status == "partial":
+        return (
+            "I retrieved only partial evidence for this request. "
+            f"Because the request is classified as {risk_level} risk, "
+            "I cannot produce a sufficiently supported response."
+        )
+
+    return (
+        "I cannot produce a sufficiently supported response from the "
+        "evidence available to this workflow."
+    )
+
+def abstain(state: MedicalResearchState) -> dict:
+    abstention_message = build_abstention_message(state)
 
     return {
-        "synthesis": (
-            "Insufficient evidence is available to provide a reliable "
-            "response for this request."
-        ),
-        "citations": available_citations,
-        "validation_status": "insufficient_evidence",
+        "synthesis": abstention_message,
+        "final_answer": abstention_message,
+        "release_status": "abstained",
+        "response_mode": "abstain",
+        "validation_status": "not_applicable",
     }

@@ -25,5 +25,8 @@ class MedicalResearchState(TypedDict):
     synthesis_result: EvidenceSynthesis | None
     citations: list[dict]
 
+    final_answer: str | None
+    release_status: str | None
+
     validation_status: str | None
     errors: Annotated[list[WorkflowError], operator.add]
