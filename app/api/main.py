@@ -5,6 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import os
+import sqlite3
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from langgraph.checkpoint.sqlite import SqliteSaver
+
 from fastapi import FastAPI, HTTPException
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
@@ -102,11 +109,43 @@ def external_response(
     )
 
 
-def create_app(workflow_graph=None) -> FastAPI:
-    graph = workflow_graph or build_graph(
-        synthesis_node=synthesize_with_llm,
-        checkpointer=InMemorySaver(),
+def build_durable_runtime_graph():
+    checkpoint_path = Path(
+        os.getenv(
+            "MEDEVIDENCE_CHECKPOINT_DB",
+            ".local/medevidence_api.sqlite",
+        )
     )
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+
+    connection = sqlite3.connect(
+        checkpoint_path,
+        check_same_thread=False,
+    )
+    checkpointer = SqliteSaver(connection)
+    graph = build_graph(
+        synthesis_node=synthesize_with_llm,
+        checkpointer=checkpointer,
+    )
+
+    return graph, connection
+
+
+def create_app(workflow_graph=None) -> FastAPI:
+    owned_connection = None
+
+    if workflow_graph is None:
+        graph, owned_connection = build_durable_runtime_graph()
+    else:
+        graph = workflow_graph
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
+        try:
+            yield
+        finally:
+            if owned_connection is not None:
+                owned_connection.close()
 
     api = FastAPI(
         title="MedEvidence API",
@@ -115,7 +154,9 @@ def create_app(workflow_graph=None) -> FastAPI:
             "Synthetic medical-evidence workflow demonstration. "
             "Not for clinical use."
         ),
+        lifespan=lifespan,
     )
+
 
     @api.get("/health")
     def health() -> dict[str, str]:
