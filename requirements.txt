@@ -8,3 +8,6 @@ python-dotenv
 rich
 pytest
 langgraph-checkpoint-sqlite
+fastapi
+uvicorn[standard]
+httpx
