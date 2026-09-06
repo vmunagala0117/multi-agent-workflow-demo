@@ -4,6 +4,10 @@ from uuid import uuid4
 
 from dotenv import load_dotenv
 
+from evals.medevidence.workflow_groundedness import (
+    evaluate_workflow_groundedness,
+)
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATASET_NAME = "medevidence-golden-v1"
@@ -113,24 +117,31 @@ def deterministic_evaluator(
     ]
 
 
+def groundedness_evaluator(
+    inputs: dict,
+    outputs: dict,
+) -> list[dict]:
+    return evaluate_workflow_groundedness(inputs, outputs)
+
 def main() -> None:
     client = Client()
 
     results = client.evaluate(
         target,
         data=DATASET_NAME,
-        evaluators=[deterministic_evaluator],
-        experiment_prefix="medevidence-azure-baseline",
+        evaluators=[deterministic_evaluator, groundedness_evaluator,],
+        experiment_prefix="medevidence-azure-groundedness",
         description=(
-            "Azure-backed MedEvidence baseline using deterministic "
-            "policy, structure, and citation evaluators."
+            "Azure-backed MedEvidence experiment with deterministic "
+            "controls and calibrated claim-level groundedness scoring."
         ),
         max_concurrency=1,
         metadata={
             "workflow_version": "phase-5-v1",
             "dataset_version": "v1",
             "synthesis_backend": "azure-openai",
-            "evaluator_version": "deterministic-v1",
+            "deterministic_evaluator_version": "v1",
+            "groundedness_evaluator_version": "v1",
         },
     )
 
