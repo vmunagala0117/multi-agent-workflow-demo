@@ -20,7 +20,8 @@ from .release import reject_response
 
 
 def build_graph(synthesis_node=synthesize,
-                checkpointer=None):
+                checkpointer=None,
+                interrupt_before=None,):
     builder = StateGraph(MedicalResearchState)
 
     builder.add_node("literature_research", literature_research)
@@ -76,4 +77,5 @@ def build_graph(synthesis_node=synthesize,
     builder.add_edge("block_response", END)
     builder.add_edge("reject_response", END)
 
-    return builder.compile(checkpointer=checkpointer)
+    return builder.compile(checkpointer=checkpointer,
+                           interrupt_before=interrupt_before,)
