@@ -23,6 +23,24 @@ flowchart TD
     H --> G
 ```
 
+```mermaid
+flowchart TD
+    A["FastAPI request"] --> B["LangGraph state"]
+    B --> C["Literature retrieval"]
+    B --> D["Internal evidence retrieval"]
+    C --> E["Evidence assessment"]
+    D --> E
+    E --> F{"Evidence and risk policy"}
+    F -->|Insufficient| G["Safe abstention"]
+    F -->|Sufficient| H["Azure OpenAI synthesis"]
+    H --> I["Citation validation"]
+    I --> J{"Valid and releasable?"}
+    J -->|Invalid| K["Block response"]
+    J -->|Low or medium risk| L["Release response"]
+    J -->|High risk| M["Human review interrupt"]
+    M -->|Approve| L
+    M
+
 ## Core Design Principles
 
 - Use deterministic automation for retrieval filters, routing, citation-label

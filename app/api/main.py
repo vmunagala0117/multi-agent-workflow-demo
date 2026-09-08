@@ -21,6 +21,7 @@ from use_cases.medevidence_research.graph import build_graph
 from use_cases.medevidence_research.llm_synthesis import (
     synthesize_with_llm,
 )
+from use_cases.medevidence_research.schemas import EvidenceSynthesis
 
 
 RiskLevel = Literal["low", "medium", "high"]
@@ -82,10 +83,24 @@ def graph_config(thread_id: str) -> dict:
 
 
 def citation_labels(values: dict) -> list[str]:
-    return [
-        record["citation_label"]
-        for record in values.get("citations", [])
-    ]
+    result = values.get("synthesis_result")
+
+    if result is None:
+        return []
+
+    if not isinstance(result, EvidenceSynthesis):
+        result = EvidenceSynthesis.model_validate(result)
+
+    labels = (
+        label
+        for finding in [
+            *result.efficacy_findings,
+            *result.safety_findings,
+        ]
+        for label in finding.citation_labels
+    )
+
+    return list(dict.fromkeys(labels))
 
 
 def external_response(
