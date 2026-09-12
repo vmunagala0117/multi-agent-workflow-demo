@@ -1,0 +1,68 @@
+{
+    "version": "1.0.0",
+    "cases": [
+        {
+            "case_id": "EO-GOLDEN-001",
+            "user_query": "Why did Southeast logistics expense exceed budget in August 2026?",
+            "expected_domain": "finance",
+            "expected_question_class": "finance_variance",
+            "expected_skill": "finance_variance",
+            "filters": {
+                "period": "2026-08",
+                "region": "Southeast",
+                "cost_category": "logistics_expense"
+            },
+            "expected_result": {
+                "actual_expense": "1330000.00",
+                "budget_expense": "1180000.00",
+                "variance_amount": "150000.00",
+                "variance_percent": "12.71"
+            }
+        },
+        {
+            "case_id": "EO-GOLDEN-002",
+            "user_query": "Which business units contributed most to the unfavorable Southeast logistics variance in August 2026?",
+            "expected_domain": "finance",
+            "expected_question_class": "business_unit_contribution",
+            "expected_skill": "finance_variance",
+            "filters": {
+                "period": "2026-08",
+                "region": "Southeast",
+                "cost_category": "logistics_expense"
+            },
+            "expected_result": {
+                "ranked_contributions": [
+                    {
+                        "business_unit_id": "BU-101",
+                        "variance_amount": "100000.00"
+                    },
+                    {
+                        "business_unit_id": "BU-102",
+                        "variance_amount": "30000.00"
+                    },
+                    {
+                        "business_unit_id": "BU-103",
+                        "variance_amount": "20000.00"
+                    }
+                ]
+            }
+        },
+        {
+            "case_id": "EO-GOLDEN-003",
+            "user_query": "Did shipment volume or cost per shipment drive the Southeast logistics variance in August 2026?",
+            "expected_domain": "operations",
+            "expected_question_class": "operations_driver",
+            "expected_skill": "operations_performance",
+            "filters": {
+                "period": "2026-08",
+                "region": "Southeast"
+            },
+            "expected_result": {
+                "volume_effect": "15000.00",
+                "rate_effect": "135000.00",
+                "total_variance": "150000.00",
+                "primary_driver": "cost_per_shipment"
+            }
+        }
+    ]
+}
