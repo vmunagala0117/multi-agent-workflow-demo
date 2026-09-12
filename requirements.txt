@@ -11,3 +11,4 @@ langgraph-checkpoint-sqlite
 fastapi
 uvicorn[standard]
 httpx
+PyYAML
