@@ -1,0 +1,8 @@
+period,business_unit_id,cost_category,actual_expense
+2026-07,BU-101,logistics_expense,440000
+2026-07,BU-102,logistics_expense,390000
+2026-07,BU-103,logistics_expense,325000
+2026-08,BU-101,logistics_expense,550000
+2026-08,BU-102,logistics_expense,430000
+2026-08,BU-103,logistics_expense,350000
+2026-08,BU-201,logistics_expense,310000

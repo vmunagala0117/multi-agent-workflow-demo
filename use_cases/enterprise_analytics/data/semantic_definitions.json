@@ -1,0 +1,228 @@
+{
+    "version": "1.0.0",
+    "metrics": [
+        {
+            "metric_id": "actual_expense",
+            "domain": "finance",
+            "business_name": "Actual Logistics Expense",
+            "definition": "Recognized logistics expense for the selected reporting period and organizational scope.",
+            "unit": "USD",
+            "aggregation": "sum",
+            "source_fields": [
+                "actual_expense"
+            ],
+            "formula": null,
+            "allowed_dimensions": [
+                "period",
+                "region",
+                "business_unit",
+                "cost_category"
+            ],
+            "favorable_direction": "lower_is_better",
+            "guardrails": [
+                "Filter to the requested period and authorized organizational scope."
+            ]
+        },
+        {
+            "metric_id": "budget_expense",
+            "domain": "finance",
+            "business_name": "Budget Logistics Expense",
+            "definition": "Approved logistics expense budget for the selected reporting period and organizational scope.",
+            "unit": "USD",
+            "aggregation": "sum",
+            "source_fields": [
+                "budget_expense"
+            ],
+            "formula": null,
+            "allowed_dimensions": [
+                "period",
+                "region",
+                "business_unit",
+                "cost_category"
+            ],
+            "favorable_direction": "neutral",
+            "guardrails": [
+                "Use the budget version approved for the requested reporting period."
+            ]
+        },
+        {
+            "metric_id": "variance_amount",
+            "domain": "finance",
+            "business_name": "Expense Variance",
+            "definition": "Actual expense minus budget expense. A positive value is unfavorable for expense metrics.",
+            "unit": "USD",
+            "aggregation": "derived",
+            "source_fields": [
+                "actual_expense",
+                "budget_expense"
+            ],
+            "formula": "actual_expense - budget_expense",
+            "allowed_dimensions": [
+                "period",
+                "region",
+                "business_unit",
+                "cost_category"
+            ],
+            "favorable_direction": "lower_is_better",
+            "guardrails": [
+                "Label positive values as unfavorable and negative values as favorable."
+            ]
+        },
+        {
+            "metric_id": "variance_percent",
+            "domain": "finance",
+            "business_name": "Expense Variance Percent",
+            "definition": "Expense variance divided by budget expense, expressed as a percentage.",
+            "unit": "percent",
+            "aggregation": "derived",
+            "source_fields": [
+                "actual_expense",
+                "budget_expense"
+            ],
+            "formula": "CASE WHEN budget_expense = 0 THEN NULL ELSE ((actual_expense - budget_expense) / budget_expense) * 100 END",
+            "allowed_dimensions": [
+                "period",
+                "region",
+                "business_unit",
+                "cost_category"
+            ],
+            "favorable_direction": "lower_is_better",
+            "guardrails": [
+                "Return null when budget expense is zero.",
+                "Calculate from aggregated actual and budget totals; do not average row-level percentages."
+            ]
+        },
+        {
+            "metric_id": "actual_shipment_volume",
+            "domain": "operations",
+            "business_name": "Actual Shipment Volume",
+            "definition": "Completed shipment count for the selected reporting period and organizational scope.",
+            "unit": "shipments",
+            "aggregation": "sum",
+            "source_fields": [
+                "actual_shipment_volume"
+            ],
+            "formula": null,
+            "allowed_dimensions": [
+                "period",
+                "region",
+                "business_unit"
+            ],
+            "favorable_direction": "neutral",
+            "guardrails": [
+                "Do not interpret higher volume as favorable without business context."
+            ]
+        },
+        {
+            "metric_id": "budget_shipment_volume",
+            "domain": "operations",
+            "business_name": "Budget Shipment Volume",
+            "definition": "Planned shipment count for the selected reporting period and organizational scope.",
+            "unit": "shipments",
+            "aggregation": "sum",
+            "source_fields": [
+                "budget_shipment_volume"
+            ],
+            "formula": null,
+            "allowed_dimensions": [
+                "period",
+                "region",
+                "business_unit"
+            ],
+            "favorable_direction": "neutral",
+            "guardrails": [
+                "Use the plan version aligned to the finance budget period."
+            ]
+        },
+        {
+            "metric_id": "actual_cost_per_shipment",
+            "domain": "operations",
+            "business_name": "Actual Cost per Shipment",
+            "definition": "Actual logistics expense divided by actual shipment volume.",
+            "unit": "USD_per_shipment",
+            "aggregation": "weighted_average",
+            "source_fields": [
+                "actual_cost_per_shipment",
+                "actual_shipment_volume"
+            ],
+            "formula": "SUM(actual_cost_per_shipment * actual_shipment_volume) / NULLIF(SUM(actual_shipment_volume), 0)",
+            "allowed_dimensions": [
+                "period",
+                "region",
+                "business_unit"
+            ],
+            "favorable_direction": "lower_is_better",
+            "guardrails": [
+                "Weight by actual shipment volume; never take a simple average across business units."
+            ]
+        },
+        {
+            "metric_id": "budget_cost_per_shipment",
+            "domain": "operations",
+            "business_name": "Budget Cost per Shipment",
+            "definition": "Budget logistics expense divided by budget shipment volume.",
+            "unit": "USD_per_shipment",
+            "aggregation": "weighted_average",
+            "source_fields": [
+                "budget_cost_per_shipment",
+                "budget_shipment_volume"
+            ],
+            "formula": "SUM(budget_cost_per_shipment * budget_shipment_volume) / NULLIF(SUM(budget_shipment_volume), 0)",
+            "allowed_dimensions": [
+                "period",
+                "region",
+                "business_unit"
+            ],
+            "favorable_direction": "neutral",
+            "guardrails": [
+                "Weight by budget shipment volume; never take a simple average across business units."
+            ]
+        },
+        {
+            "metric_id": "volume_effect",
+            "domain": "operations",
+            "business_name": "Shipment Volume Effect",
+            "definition": "Expense variance attributable to shipment volume changing from budget while holding budget cost per shipment constant.",
+            "unit": "USD",
+            "aggregation": "derived",
+            "source_fields": [
+                "actual_shipment_volume",
+                "budget_shipment_volume",
+                "budget_cost_per_shipment"
+            ],
+            "formula": "(actual_shipment_volume - budget_shipment_volume) * budget_cost_per_shipment",
+            "allowed_dimensions": [
+                "period",
+                "region",
+                "business_unit"
+            ],
+            "favorable_direction": "neutral",
+            "guardrails": [
+                "Use the approved two-factor decomposition; do not substitute a model-generated formula."
+            ]
+        },
+        {
+            "metric_id": "rate_effect",
+            "domain": "operations",
+            "business_name": "Cost-per-Shipment Effect",
+            "definition": "Expense variance attributable to cost per shipment changing from budget, including the volume-rate interaction.",
+            "unit": "USD",
+            "aggregation": "derived",
+            "source_fields": [
+                "actual_shipment_volume",
+                "actual_cost_per_shipment",
+                "budget_cost_per_shipment"
+            ],
+            "formula": "actual_shipment_volume * (actual_cost_per_shipment - budget_cost_per_shipment)",
+            "allowed_dimensions": [
+                "period",
+                "region",
+                "business_unit"
+            ],
+            "favorable_direction": "lower_is_better",
+            "guardrails": [
+                "The interaction effect is assigned to rate so volume effect plus rate effect reconciles to total expense variance."
+            ]
+        }
+    ]
+}
