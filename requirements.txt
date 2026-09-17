@@ -12,3 +12,4 @@ fastapi
 uvicorn[standard]
 httpx
 PyYAML
+mcp[cli]
