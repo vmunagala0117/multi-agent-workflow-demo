@@ -1,0 +1,113 @@
+[
+    {
+        "case_id": "finance-variance-001",
+        "query": "Why did Southeast logistics expense exceed budget in August?",
+        "user_id": "demo-finance-user",
+        "expected": {
+            "status": "completed",
+            "question_class": "finance_variance",
+            "selected_skill_name": "finance_variance",
+            "result_valid": true,
+            "analytics_result": {
+                "actual_expense": "1330000.00",
+                "budget_expense": "1180000.00",
+                "variance_amount": "150000.00"
+            },
+            "required_tool_suffix": [
+                "validate_query",
+                "execute_analytics_query",
+                "validate_result"
+            ],
+            "final_answer_contains": [
+                "$150,000.00",
+                "unfavorable"
+            ]
+        }
+    },
+    {
+        "case_id": "business-unit-001",
+        "query": "Which business units contributed most to the unfavorable Southeast logistics variance in August?",
+        "user_id": "demo-finance-user",
+        "expected": {
+            "status": "completed",
+            "question_class": "business_unit_contribution",
+            "selected_skill_name": "finance_variance",
+            "result_valid": true,
+            "required_tool_suffix": [
+                "validate_query",
+                "execute_analytics_query",
+                "validate_result"
+            ],
+            "final_answer_contains": [
+                "Regional Delivery",
+                "$100,000.00"
+            ]
+        }
+    },
+    {
+        "case_id": "operations-driver-001",
+        "query": "Did shipment volume or cost per shipment drive the Southeast variance in August?",
+        "user_id": "demo-analyst",
+        "expected": {
+            "status": "completed",
+            "question_class": "operations_driver",
+            "selected_skill_name": "operations_performance",
+            "result_valid": true,
+            "analytics_result": {
+                "primary_driver": "cost_per_shipment",
+                "rate_effect": "135000.00"
+            },
+            "required_tool_suffix": [
+                "validate_query",
+                "execute_analytics_query",
+                "validate_result"
+            ],
+            "final_answer_contains": [
+                "cost per shipment",
+                "$135,000.00"
+            ]
+        }
+    },
+    {
+        "case_id": "authorization-denied-001",
+        "query": "Did shipment volume or cost per shipment drive the Southeast variance in August?",
+        "user_id": "demo-finance-user",
+        "expected": {
+            "status": "access_denied",
+            "forbidden_tools": [
+                "validate_query",
+                "execute_analytics_query",
+                "validate_result"
+            ]
+        }
+    },
+    {
+        "case_id": "unsupported-scope-001",
+        "query": "Forecast next year's Northeast revenue.",
+        "user_id": "demo-analyst",
+        "expected": {
+            "status": "clarification_required",
+            "forbidden_tools": [
+                "validate_query",
+                "execute_analytics_query",
+                "validate_result"
+            ]
+        }
+    },
+    {
+        "case_id": "missing-period-001",
+        "query": "Why did Southeast logistics expense exceed budget?",
+        "user_id": "demo-finance-user",
+        "expected": {
+            "status": "clarification_required",
+            "forbidden_tools": [
+                "validate_query",
+                "execute_analytics_query",
+                "validate_result"
+            ],
+            "final_answer_contains": [
+                "reporting period"
+            ]
+        }
+    }
+]
