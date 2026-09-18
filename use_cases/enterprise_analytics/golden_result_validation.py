@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +45,13 @@ def _expected_result(
     )
 
 
+def _numeric_equal(left: Any, right: Any) -> bool:
+    try:
+        return Decimal(str(left)) == Decimal(str(right))
+    except (InvalidOperation, TypeError, ValueError):
+        return False
+
+
 def validate_against_golden_contract(
     *,
     plan: AnalyticsQueryPlan,
@@ -52,49 +60,70 @@ def validate_against_golden_contract(
     expected = _expected_result(plan)
 
     if plan.question_class == QuestionClass.FINANCE_VARIANCE:
-        observed = {
-            key: observed_result.get(key)
-            for key in (
-                "actual_expense",
-                "budget_expense",
-                "variance_amount",
-                "variance_percent",
+        numeric_keys = (
+            "actual_expense",
+            "budget_expense",
+            "variance_amount",
+            "variance_percent",
+        )
+
+        valid = all(
+            _numeric_equal(
+                observed_result.get(key),
+                expected.get(key),
             )
-        }
+            for key in numeric_keys
+        )
 
     elif (
         plan.question_class
         == QuestionClass.BUSINESS_UNIT_CONTRIBUTION
     ):
-        observed = {
-            "ranked_contributions": [
-                {
-                    "business_unit_id": item.get(
-                        "business_unit_id"
-                    ),
-                    "variance_amount": item.get(
-                        "variance_amount"
-                    ),
-                }
-                for item in observed_result.get(
-                    "contributions",
-                    [],
+        observed_items = observed_result.get(
+            "contributions",
+            [],
+        )
+        expected_items = expected.get(
+            "ranked_contributions",
+            [],
+        )
+
+        valid = (
+            len(observed_items) == len(expected_items)
+            and all(
+                observed_item.get("business_unit_id")
+                == expected_item.get("business_unit_id")
+                and _numeric_equal(
+                    observed_item.get("variance_amount"),
+                    expected_item.get("variance_amount"),
                 )
-            ]
-        }
+                for observed_item, expected_item in zip(
+                    observed_items,
+                    expected_items,
+                    strict=True,
+                )
+            )
+        )
 
     else:
-        observed = {
-            key: observed_result.get(key)
-            for key in (
-                "volume_effect",
-                "rate_effect",
-                "total_variance",
-                "primary_driver",
-            )
-        }
+        numeric_keys = (
+            "volume_effect",
+            "rate_effect",
+            "total_variance",
+        )
 
-    if observed == expected:
+        valid = all(
+            _numeric_equal(
+                observed_result.get(key),
+                expected.get(key),
+            )
+            for key in numeric_keys
+        ) and (
+            observed_result.get("primary_driver")
+            == expected.get("primary_driver")
+        )
+
+    if valid:
         return []
 
     return [

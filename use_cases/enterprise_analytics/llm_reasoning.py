@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import AzureChatOpenAI
+from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from use_cases.enterprise_analytics.schemas import (
@@ -65,9 +65,11 @@ class EnterpriseReasoner(Protocol):
 
 
 class AzureEnterpriseReasoner:
-    def __init__(self, model: AzureChatOpenAI) -> None:
+    def __init__(self, model: ChatOpenAI) -> None:
         self._intent_model = model.with_structured_output(SemanticIntent)
-        self._plan_model = model.with_structured_output(AnalyticsQueryPlan)
+        self._plan_model = model.with_structured_output(
+            AnalyticsQueryPlan
+        )
         self._narrative_model = model.with_structured_output(
             GroundedNarrative
         )
@@ -75,30 +77,41 @@ class AzureEnterpriseReasoner:
     @classmethod
     def from_environment(cls) -> "AzureEnterpriseReasoner":
         load_dotenv()
+
         deployment = (
             os.getenv("AZURE_OPENAI_DEPLOYMENT")
             or os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")
         )
+
         required = {
-            "AZURE_OPENAI_ENDPOINT": os.getenv("AZURE_OPENAI_ENDPOINT"),
-            "AZURE_OPENAI_API_KEY": os.getenv("AZURE_OPENAI_API_KEY"),
-            "AZURE_OPENAI_API_VERSION": os.getenv(
-                "AZURE_OPENAI_API_VERSION"
+            "AZURE_OPENAI_ENDPOINT": os.getenv(
+                "AZURE_OPENAI_ENDPOINT"
+            ),
+            "AZURE_OPENAI_API_KEY": os.getenv(
+                "AZURE_OPENAI_API_KEY"
             ),
             "AZURE_OPENAI_DEPLOYMENT": deployment,
         }
-        missing = [name for name, value in required.items() if not value]
+
+        missing = [
+            name
+            for name, value in required.items()
+            if not value
+        ]
         if missing:
             raise RuntimeError(
                 "Missing Azure OpenAI configuration: "
                 + ", ".join(missing)
             )
 
-        model = AzureChatOpenAI(
-            azure_endpoint=required["AZURE_OPENAI_ENDPOINT"],
+        base_url = required["AZURE_OPENAI_ENDPOINT"].rstrip("/")
+        if not base_url.endswith("/openai/v1"):
+            base_url = f"{base_url}/openai/v1"
+
+        model = ChatOpenAI(
+            base_url=f"{base_url}/",
             api_key=required["AZURE_OPENAI_API_KEY"],
-            api_version=required["AZURE_OPENAI_API_VERSION"],
-            azure_deployment=required["AZURE_OPENAI_DEPLOYMENT"],
+            model=required["AZURE_OPENAI_DEPLOYMENT"],
             max_retries=2,
         )
         return cls(model)
