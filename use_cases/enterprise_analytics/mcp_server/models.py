@@ -1,4 +1,5 @@
 from typing import Any
+from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -33,6 +34,10 @@ class QueryValidationReceipt(BaseModel):
     approved: bool
     user_id: str
     semantic_catalog_version: str
+    policy_version: str
+    plan_hash: str
+    issued_at: datetime
+    expires_at: datetime
     plan: AnalyticsQueryPlan
 
 
