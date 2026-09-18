@@ -47,6 +47,7 @@ class EnterpriseAnalyticsState(TypedDict, total=False):
     analytics_result: dict[str, Any]
     result_valid: bool
     validation_errors: list[str]
+    claim_validation_errors: list[str]
 
     tool_trajectory: Annotated[list[str], add]
     final_answer: str | None

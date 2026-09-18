@@ -22,6 +22,7 @@ def finance_plan(**overrides) -> AnalyticsQueryPlan:
             MetricName.ACTUAL_EXPENSE,
             MetricName.BUDGET_EXPENSE,
             MetricName.VARIANCE_AMOUNT,
+            MetricName.VARIANCE_PERCENT,
         ],
         "dimensions": [],
         "filters": [
@@ -196,3 +197,18 @@ def test_tampered_result_fails_independent_golden_validation() -> None:
 
     assert checked.valid is False
     assert "independent golden contract" in checked.errors[0]
+
+def test_rejects_missing_required_metric() -> None:
+    plan = finance_plan(
+        metrics=[
+            MetricName.ACTUAL_EXPENSE,
+            MetricName.BUDGET_EXPENSE,
+            MetricName.VARIANCE_AMOUNT,
+        ]
+    )
+
+    with pytest.raises(ValueError, match="governed question contract"):
+        QueryService().validate(
+            user_id="demo-finance-user",
+            plan=plan,
+        )

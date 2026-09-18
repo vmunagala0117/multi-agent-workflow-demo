@@ -3,6 +3,8 @@ import re
 from use_cases.enterprise_analytics.schemas import (
     AnalyticsDomain,
     AnalyticsQueryPlan,
+    MetricName,
+    QuestionClass,
 )
 
 
@@ -17,6 +19,28 @@ ALLOWED_FILTER_FIELDS = {
 ALLOWED_REGIONS = {"Southeast", "Northeast"}
 ALLOWED_COST_CATEGORIES = {"logistics_expense"}
 
+REQUIRED_METRICS = {
+    QuestionClass.FINANCE_VARIANCE: {
+        MetricName.ACTUAL_EXPENSE,
+        MetricName.BUDGET_EXPENSE,
+        MetricName.VARIANCE_AMOUNT,
+        MetricName.VARIANCE_PERCENT,
+    },
+    QuestionClass.BUSINESS_UNIT_CONTRIBUTION: {
+        MetricName.ACTUAL_EXPENSE,
+        MetricName.BUDGET_EXPENSE,
+        MetricName.VARIANCE_AMOUNT,
+        MetricName.VARIANCE_PERCENT,
+    },
+    QuestionClass.OPERATIONS_DRIVER: {
+        MetricName.ACTUAL_SHIPMENT_VOLUME,
+        MetricName.BUDGET_SHIPMENT_VOLUME,
+        MetricName.ACTUAL_COST_PER_SHIPMENT,
+        MetricName.BUDGET_COST_PER_SHIPMENT,
+        MetricName.VOLUME_EFFECT,
+        MetricName.RATE_EFFECT,
+    },
+}
 
 def enforce_query_policy(plan: AnalyticsQueryPlan) -> None:
     if plan.row_limit > MAX_DEMO_ROW_LIMIT:
@@ -57,4 +81,10 @@ def enforce_query_policy(plan: AnalyticsQueryPlan) -> None:
     ):
         raise ValueError(
             "cost_category is outside the governed allowlist"
+        )
+
+    required_metrics = REQUIRED_METRICS[plan.question_class]
+    if set(plan.metrics) != required_metrics:
+        raise ValueError(
+            "Query plan metrics do not match the governed question contract"
         )
