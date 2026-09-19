@@ -6,6 +6,5 @@
 **/*.py[cod]
 .env
 .local
-evals
 tests
 *.sqlite
