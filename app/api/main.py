@@ -23,6 +23,10 @@ from use_cases.medevidence_research.llm_synthesis import (
 )
 from use_cases.medevidence_research.schemas import EvidenceSynthesis
 
+from app.api.enterprise_analytics import (
+    create_enterprise_analytics_router,
+)
+
 
 RiskLevel = Literal["low", "medium", "high"]
 RunStatus = Literal["completed", "review_required"]
@@ -271,3 +275,4 @@ def create_app(workflow_graph=None) -> FastAPI:
 
 
 app = create_app()
+app.include_router(create_enterprise_analytics_router())
