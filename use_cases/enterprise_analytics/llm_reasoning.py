@@ -161,6 +161,9 @@ class AzureEnterpriseReasoner:
                         "class exactly. Use only governed metrics and dimensions. "
                         "Set row_limit to at most 100. Do not generate SQL and do "
                         "not broaden scope."
+                        "For operations_driver, use only period and region "
+                        "filters and do not include cost_category. For finance "
+                        "questions, include period, region, and cost_category. "
                     )
                 ),
                 HumanMessage(content=json.dumps(context, default=str)),

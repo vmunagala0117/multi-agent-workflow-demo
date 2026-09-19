@@ -12,10 +12,70 @@ from use_cases.enterprise_analytics.llm_reasoning import (
     SemanticIntent,
 )
 from use_cases.enterprise_analytics.mcp_gateway import LocalMCPGateway
-from use_cases.enterprise_analytics.schemas import QuestionClass
+from use_cases.enterprise_analytics.schemas import (
+    AnalyticsQueryPlan,
+    FilterCondition,
+    QuestionClass,
+)
 from use_cases.enterprise_analytics.skill_registry import SkillRegistry
 from use_cases.enterprise_analytics.state import EnterpriseAnalyticsState
 
+def bind_plan_to_classified_scope(
+    *,
+    plan: AnalyticsQueryPlan,
+    state: EnterpriseAnalyticsState,
+) -> AnalyticsQueryPlan:
+    filters: dict[str, str] = {}
+
+    for item in plan.filters:
+        if item.field in filters:
+            raise ValueError(
+                "LLM query plan contains duplicate filters"
+            )
+        filters[item.field] = item.value
+
+    required_scope = {
+        "period": state["period"],
+        "region": state["region"],
+    }
+
+    if state["question_class"] != QuestionClass.OPERATIONS_DRIVER:
+        required_scope["cost_category"] = state["cost_category"]
+
+    extra_fields = set(filters) - set(required_scope)
+    ignored_fields = (
+        {"cost_category"}
+        if state["question_class"]
+        == QuestionClass.OPERATIONS_DRIVER
+        else set()
+    )
+    unsupported_fields = extra_fields - ignored_fields
+
+    if unsupported_fields:
+        raise ValueError(
+            "LLM query plan added unsupported filters: "
+            + ", ".join(sorted(unsupported_fields))
+        )
+
+    if (
+        plan.question_class != state["question_class"]
+        or any(
+            filters.get(field) != value
+            for field, value in required_scope.items()
+        )
+    ):
+        raise ValueError(
+            "LLM query plan changed the classified request scope"
+        )
+
+    canonical_filters = [
+        FilterCondition(field=field, value=value)
+        for field, value in required_scope.items()
+    ]
+
+    return plan.model_copy(
+        update={"filters": canonical_filters}
+    )
 
 class LLMEnterpriseOpsNodes(EnterpriseOpsNodes):
     def __init__(
@@ -65,26 +125,15 @@ class LLMEnterpriseOpsNodes(EnterpriseOpsNodes):
             metric_definitions=state["metric_definitions"],
         )
 
-        filters = {item.field: item.value for item in plan.filters}
-        required_scope = {
-            "period": state["period"],
-            "region": state["region"],
+        bound_plan = bind_plan_to_classified_scope(
+            plan=plan,
+            state=state,
+        )
+
+        return {
+            "status": "planned",
+            "query_plan": bound_plan,
         }
-        if state["question_class"] != QuestionClass.OPERATIONS_DRIVER:
-            required_scope["cost_category"] = state["cost_category"]
-
-        if (
-            plan.question_class != state["question_class"]
-            or any(
-                filters.get(field) != value
-                for field, value in required_scope.items()
-            )
-        ):
-            raise ValueError(
-                "LLM query plan changed the classified request scope"
-            )
-
-        return {"status": "planned", "query_plan": plan}
 
     async def release(
         self,

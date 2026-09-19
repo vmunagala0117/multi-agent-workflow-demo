@@ -17,6 +17,11 @@ from use_cases.enterprise_analytics.schemas import (
     QuestionClass,
 )
 
+from use_cases.enterprise_analytics.live_graph import (
+    bind_plan_to_classified_scope,
+    build_live_enterprise_analytics_graph,
+)
+
 
 class FakeReasoner:
     def __init__(
@@ -139,3 +144,47 @@ async def test_changed_scope_plan_fails_before_mcp_execution() -> None:
                 change_scope=True,
             )
         )
+
+def test_operations_plan_drops_irrelevant_cost_category_filter() -> None:
+    plan = AnalyticsQueryPlan(
+        domain=AnalyticsDomain.OPERATIONS,
+        question_class=QuestionClass.OPERATIONS_DRIVER,
+        metrics=[
+            MetricName.ACTUAL_SHIPMENT_VOLUME,
+            MetricName.BUDGET_SHIPMENT_VOLUME,
+            MetricName.ACTUAL_COST_PER_SHIPMENT,
+            MetricName.BUDGET_COST_PER_SHIPMENT,
+            MetricName.VOLUME_EFFECT,
+            MetricName.RATE_EFFECT,
+        ],
+        dimensions=[],
+        filters=[
+            FilterCondition(
+                field="period",
+                value="2026-08",
+            ),
+            FilterCondition(
+                field="region",
+                value="Southeast",
+            ),
+            FilterCondition(
+                field="cost_category",
+                value="logistics_expense",
+            ),
+        ],
+        row_limit=100,
+    )
+
+    bound = bind_plan_to_classified_scope(
+        plan=plan,
+        state={
+            "question_class": QuestionClass.OPERATIONS_DRIVER,
+            "period": "2026-08",
+            "region": "Southeast",
+        },
+    )
+
+    assert [item.field for item in bound.filters] == [
+        "period",
+        "region",
+    ]
