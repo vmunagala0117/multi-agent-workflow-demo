@@ -10,10 +10,13 @@ from use_cases.enterprise_analytics.reference_calculator import (
 )
 
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
 GOLDEN_PATH = (
-    Path(__file__).parents[3]
-    / "evals"
+    REPO_ROOT
+    / "use_cases"
     / "enterprise_analytics"
+    / "data"
     / "golden_cases.json"
 )
 

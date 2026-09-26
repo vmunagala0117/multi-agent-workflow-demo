@@ -10,9 +10,8 @@ from use_cases.enterprise_analytics.schemas import (
 
 
 GOLDEN_PATH = (
-    Path(__file__).parents[2]
-    / "evals"
-    / "enterprise_analytics"
+    Path(__file__).resolve().parent
+    / "data"
     / "golden_cases.json"
 )
 
