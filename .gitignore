@@ -217,10 +217,10 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+*_IMPLEMENTATION_WALKTHROUGH_DETAILED.md
 BUILD_DECISIONS.md
 .vscode
 .local/
 
 TODO.md
-DEMO1.md
 

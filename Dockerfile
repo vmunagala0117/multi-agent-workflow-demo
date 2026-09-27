@@ -15,8 +15,6 @@ RUN python -m pip install --upgrade pip \
 
 COPY app ./app
 COPY use_cases ./use_cases
-COPY evals/enterprise_analytics/golden_cases.json \
-     ./evals/enterprise_analytics/golden_cases.json
 
 RUN mkdir -p /app/.local \
     && chown appuser:appgroup /app/.local
